@@ -89,4 +89,31 @@ describe('Webinar Routes E2E', () => {
       error: 'User is not allowed to update this webinar',
     });
   });
+
+  it('should organize a webinar', async () => {
+    // ARRANGE
+    const server = fixture.getServer();
+    const prisma = fixture.getPrismaClient();
+
+    // ACT
+    const response = await supertest(server)
+      .post('/webinars')
+      .send({
+        title: 'New Webinar',
+        seats: 50,
+        startDate: '2050-01-01T10:00:00.000Z',
+        endDate: '2050-01-01T11:00:00.000Z',
+      })
+      .expect(201);
+
+    // ASSERT
+    expect(response.body).toHaveProperty('id');
+    const id = response.body.id;
+
+    const createdWebinar = await prisma.webinar.findUnique({
+      where: { id },
+    });
+    expect(createdWebinar).not.toBeNull();
+    expect(createdWebinar?.title).toBe('New Webinar');
+  });
 });
